@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Kurti Prompt Studio Design System - Elegant ethnic fashion theme */
+
+@layer base {
+  :root {
+    --background: 30 25% 98%;
+    --foreground: 20 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 25% 15%;
+
+    --primary: 340 65% 47%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 30 30% 94%;
+    --secondary-foreground: 20 25% 20%;
+
+    --muted: 30 20% 94%;
+    --muted-foreground: 20 15% 45%;
+
+    --accent: 45 80% 55%;
+    --accent-foreground: 20 25% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 340 65% 47%;
+
+    --radius: 0.75rem;
+
+    /* Custom colors for the app */
+    --rose: 340 65% 47%;
+    --rose-light: 340 60% 92%;
+    --gold: 45 80% 55%;
+    --gold-light: 45 70% 90%;
+    --sage: 140 25% 45%;
+    --sage-light: 140 20% 92%;
+    --cream: 30 25% 96%;
+    --terracotta: 15 60% 50%;
+    --terracotta-light: 15 50% 92%;
+
+    --sidebar-background: 30 25% 97%;
+    --sidebar-foreground: 20 25% 25%;
+    --sidebar-primary: 340 65% 47%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 30% 94%;
+    --sidebar-accent-foreground: 20 25% 20%;
+    --sidebar-border: 30 20% 88%;
+    --sidebar-ring: 340 65% 47%;
+  }
+
+  .dark {
+    --background: 20 20% 8%;
+    --foreground: 30 20% 95%;
+
+    --card: 20 20% 12%;
+    --card-foreground: 30 20% 95%;
+
+    --popover: 20 20% 12%;
+    --popover-foreground: 30 20% 95%;
+
+    --primary: 340 60% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 20 15% 18%;
+    --secondary-foreground: 30 20% 90%;
+
+    --muted: 20 15% 18%;
+    --muted-foreground: 30 15% 60%;
+
+    --accent: 45 70% 50%;
+    --accent-foreground: 20 20% 10%;
+
+    --destructive: 0 62% 35%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 20 15% 20%;
+    --input: 20 15% 20%;
+    --ring: 340 60% 55%;
+
+    --rose: 340 60% 55%;
+    --rose-light: 340 40% 20%;
+    --gold: 45 70% 50%;
+    --gold-light: 45 50% 18%;
+    --sage: 140 30% 50%;
+    --sage-light: 140 20% 18%;
+    --cream: 20 20% 12%;
+    --terracotta: 15 55% 55%;
+    --terracotta-light: 15 40% 18%;
+
+    --sidebar-background: 20 20% 10%;
+    --sidebar-foreground: 30 20% 90%;
+    --sidebar-primary: 340 60% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 20 15% 18%;
+    --sidebar-accent-foreground: 30 20% 90%;
+    --sidebar-border: 20 15% 20%;
+    --sidebar-ring: 340 60% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .gradient-rose {
+    background: linear-gradient(135deg, hsl(var(--rose)) 0%, hsl(340 55% 60%) 100%);
+  }
+  
+  .gradient-gold {
+    background: linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(35 70% 50%) 100%);
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(var(--rose)) 0%, hsl(var(--gold)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
