@@ -14,6 +14,7 @@ import {
     BarChart3, Settings, Download, Upload, TrendingUp, DollarSign, Users, Lock, LogOut, History
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 interface KeyHistory {
     id: string;
@@ -62,6 +63,7 @@ const SecretAdminKeyGen: React.FC = () => {
     const [generatedKey, setGeneratedKey] = useState('');
     const [history, setHistory] = useState<KeyHistory[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(false);
 
     // Transfer Dialog State
     const [transferDialogOpen, setTransferDialogOpen] = useState(false);
@@ -78,23 +80,50 @@ const SecretAdminKeyGen: React.FC = () => {
     const [selectedHistoryMachineId, setSelectedHistoryMachineId] = useState<string>('');
 
     useEffect(() => {
-        // Load history
-        const savedHistory = localStorage.getItem('kps_admin_history');
-        if (savedHistory) {
-            try {
-                setHistory(JSON.parse(savedHistory));
-            } catch (e) {
-                console.error("Failed to parse history");
-            }
-        }
         // Load custom password
         const savedPassword = localStorage.getItem('kps_admin_password');
         if (savedPassword) setCurrentAdminPassword(savedPassword);
+
+        // Fetch initial data
+        fetchHistory();
     }, []);
+
+    const fetchHistory = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('licenses')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching licenses:', error);
+            toast.error('Failed to load data from database');
+        } else {
+            // Map Supabase fields to our KeyHistory interface
+            const mappedHistory = data.map((item: any) => ({
+                id: item.id,
+                date: new Date(item.created_at).toLocaleString(),
+                machineId: item.machine_id,
+                type: item.type,
+                duration: item.duration,
+                key: item.key,
+                shopName: item.shop_name,
+                ownerName: item.owner_name,
+                phone: item.phone,
+                address: item.address,
+                status: item.status,
+                transferredTo: item.transferred_to,
+                price: item.price
+            }));
+            setHistory(mappedHistory);
+        }
+        setLoading(false);
+    };
 
     const handleLogin = () => {
         if (password === currentAdminPassword) {
             setIsAdmin(true);
+            fetchHistory(); // Refresh on login
         } else {
             toast.error('Wrong Password');
         }
@@ -108,7 +137,7 @@ const SecretAdminKeyGen: React.FC = () => {
         toast.success("Admin Password Updated!");
     };
 
-    const handleGenerate = () => {
+    const handleGenerate = async () => {
         if (!targetMachineId) {
             toast.error('Enter Machine ID');
             return;
@@ -120,28 +149,30 @@ const SecretAdminKeyGen: React.FC = () => {
         const key = generateLicenseKey(targetMachineId, parseFloat(duration), 'PRO');
         setGeneratedKey(key);
 
-        const newEntry: KeyHistory = {
-            id: crypto.randomUUID(),
-            date: new Date().toLocaleString(),
-            machineId: targetMachineId,
+        // Insert into Supabase
+        const { error } = await supabase.from('licenses').insert({
+            machine_id: targetMachineId,
             type: 'PRO',
-            duration: `${duration}`,
+            duration: duration,
             key: key,
-            shopName: shopName || 'Unknown',
-            ownerName: ownerName || '-',
+            shop_name: shopName || 'Unknown',
+            owner_name: ownerName || '-',
             phone: phone || '-',
             address: address || '-',
             status: 'ACTIVE',
-            price: price
-        };
+            price: price,
+            created_at: new Date().toISOString()
+        });
 
-        const updatedHistory = [newEntry, ...history];
-        setHistory(updatedHistory);
-        localStorage.setItem('kps_admin_history', JSON.stringify(updatedHistory));
-        toast.success("License Generated & Saved!");
+        if (error) {
+            toast.error("Database Error: " + error.message);
+        } else {
+            toast.success("License Generated & Saved to Database!");
+            fetchHistory(); // Refresh list
+        }
     };
 
-    const handleTransfer = () => {
+    const handleTransfer = async () => {
         if (!selectedLicense || !newMachineId) return;
 
         const createdDate = new Date(selectedLicense.date);
@@ -159,34 +190,39 @@ const SecretAdminKeyGen: React.FC = () => {
 
         const newKey = generateLicenseKey(newMachineId, remainingDays, 'PRO');
 
-        const newEntry: KeyHistory = {
-            id: crypto.randomUUID(),
-            date: new Date().toLocaleString(),
-            machineId: newMachineId,
+        // 1. Mark old license as transferred
+        const { error: updateError } = await supabase
+            .from('licenses')
+            .update({ status: 'TRANSFERRED', transferred_to: newMachineId })
+            .eq('id', selectedLicense.id);
+
+        if (updateError) {
+            toast.error("Failed to update old license");
+            return;
+        }
+
+        // 2. Create new license
+        const { error: insertError } = await supabase.from('licenses').insert({
+            machine_id: newMachineId,
             type: 'PRO (Transfer)',
             duration: remainingDays.toFixed(4),
             key: newKey,
-            shopName: selectedLicense.shopName,
-            ownerName: selectedLicense.ownerName,
+            shop_name: selectedLicense.shopName,
+            owner_name: selectedLicense.ownerName,
             phone: selectedLicense.phone,
             address: selectedLicense.address,
             status: 'ACTIVE',
             price: 0 // Transfer is free usually
-        };
+        });
 
-        const updatedHistory = history.map(item =>
-            item.id === selectedLicense.id
-                ? { ...item, status: 'TRANSFERRED' as const, transferredTo: newMachineId }
-                : item
-        );
-
-        const finalHistory = [newEntry, ...updatedHistory];
-        setHistory(finalHistory);
-        localStorage.setItem('kps_admin_history', JSON.stringify(finalHistory));
-
-        setTransferDialogOpen(false);
-        setNewMachineId('');
-        toast.success(`License Transferred! New Key for ${remainingDays.toFixed(1)} days.`);
+        if (insertError) {
+            toast.error("Failed to create new license record");
+        } else {
+            toast.success(`License Transferred! New Key for ${remainingDays.toFixed(1)} days.`);
+            setTransferDialogOpen(false);
+            setNewMachineId('');
+            fetchHistory();
+        }
     };
 
     const handleBackup = () => {
@@ -200,17 +236,42 @@ const SecretAdminKeyGen: React.FC = () => {
         toast.success("Backup Downloaded!");
     };
 
-    const handleRestore = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleRestore = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const fileReader = new FileReader();
         if (event.target.files && event.target.files[0]) {
             fileReader.readAsText(event.target.files[0], "UTF-8");
-            fileReader.onload = (e) => {
+            fileReader.onload = async (e) => {
                 try {
                     const parsed = JSON.parse(e.target?.result as string);
                     if (Array.isArray(parsed)) {
-                        setHistory(parsed);
-                        localStorage.setItem('kps_admin_history', JSON.stringify(parsed));
-                        toast.success("Database Restored Successfully!");
+                        // Ask user if they want to upload to DB
+                        const confirmUpload = window.confirm(`Restore: Found ${parsed.length} records. Upload these to the live database?`);
+
+                        if (confirmUpload) {
+                            // Map local history format to Supabase format
+                            const dbRecords = parsed.map(p => ({
+                                machine_id: p.machineId,
+                                type: p.type,
+                                duration: p.duration,
+                                key: p.key,
+                                shop_name: p.shopName,
+                                owner_name: p.ownerName,
+                                phone: p.phone,
+                                address: p.address,
+                                status: p.status,
+                                price: p.price,
+                                created_at: p.date ? new Date(p.date).toISOString() : new Date().toISOString()
+                            }));
+
+                            const { error } = await supabase.from('licenses').insert(dbRecords);
+
+                            if (error) {
+                                toast.error("Restore Failed: " + error.message);
+                            } else {
+                                toast.success("Database Restored Successfully!");
+                                fetchHistory();
+                            }
+                        }
                     } else {
                         toast.error("Invalid Backup File");
                     }
@@ -221,38 +282,40 @@ const SecretAdminKeyGen: React.FC = () => {
         }
     };
 
-    const handleRenew = () => {
+    const handleRenew = async () => {
         if (!selectedRenewalLicense) return;
 
         const price = PRICE_MAP[renewalDuration] || 0;
         const key = generateLicenseKey(selectedRenewalLicense.machineId, parseFloat(renewalDuration), 'PRO');
 
-        const newEntry: KeyHistory = {
-            id: crypto.randomUUID(),
-            date: new Date().toLocaleString(),
-            machineId: selectedRenewalLicense.machineId,
+        // 1. Mark old as RENEWED
+        await supabase
+            .from('licenses')
+            .update({ status: 'RENEWED' })
+            .eq('id', selectedRenewalLicense.id);
+
+        // 2. Insert new record
+        const { error } = await supabase.from('licenses').insert({
+            machine_id: selectedRenewalLicense.machineId,
             type: 'PRO (Renewal)',
-            duration: `${renewalDuration}`,
+            duration: renewalDuration,
             key: key,
-            shopName: selectedRenewalLicense.shopName,
-            ownerName: selectedRenewalLicense.ownerName,
+            shop_name: selectedRenewalLicense.shopName,
+            owner_name: selectedRenewalLicense.ownerName,
             phone: selectedRenewalLicense.phone,
             address: selectedRenewalLicense.address,
             status: 'ACTIVE',
             price: price
-        };
+        });
 
-        const updatedHistory = [newEntry, ...history.map(h =>
-            h.id === selectedRenewalLicense.id
-                ? { ...h, status: 'RENEWED' as const }
-                : h
-        )];
-        setHistory(updatedHistory);
-        localStorage.setItem('kps_admin_history', JSON.stringify(updatedHistory));
-
-        setRenewDialogOpen(false);
-        setGeneratedKey(key); // Show the new key to admin
-        toast.success("Plan Renewed/Changed Successfully!");
+        if (error) {
+            toast.error("Renewal Error: " + error.message);
+        } else {
+            toast.success("Plan Renewed/Changed Successfully!");
+            setRenewDialogOpen(false);
+            setGeneratedKey(key); // Show the new key to admin
+            fetchHistory();
+        }
     };
 
     // Analytics Calculations

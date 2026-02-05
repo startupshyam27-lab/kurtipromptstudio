@@ -16,7 +16,7 @@ export const LicenseBarrier: React.FC<LicenseBarrierProps> = ({ className = '', 
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    const handleActivate = () => {
+    const handleActivate = async () => {
         setError('');
         setSuccess('');
 
@@ -25,7 +25,7 @@ export const LicenseBarrier: React.FC<LicenseBarrierProps> = ({ className = '', 
             return;
         }
 
-        const result = activateLicense(inputKey.trim());
+        const result = await activateLicense(inputKey.trim());
         if (result.success) {
             setSuccess(result.message);
             // Optional: Could prompt for shop name here, but we'll let them do it in the app profile.
