@@ -100,21 +100,34 @@ const SecretAdminKeyGen: React.FC = () => {
             toast.error('Failed to load data from database');
         } else {
             // Map Supabase fields to our KeyHistory interface
-            const mappedHistory = data.map((item: any) => ({
-                id: item.id,
-                date: new Date(item.created_at).toLocaleString(),
-                machineId: item.machine_id,
-                type: item.type,
-                duration: item.duration,
-                key: item.key,
-                shopName: item.shop_name,
-                ownerName: item.owner_name,
-                phone: item.phone,
-                address: item.address,
-                status: item.status,
-                transferredTo: item.transferred_to,
-                price: item.price
-            }));
+            const mappedHistory = data.map((item: any) => {
+                const created = new Date(item.created_at);
+                const durationDays = parseFloat(item.duration);
+                const expiryDate = new Date(created.getTime() + durationDays * 24 * 60 * 60 * 1000);
+                const isExpired = new Date() > expiryDate;
+
+                // Dynamic Status Calculation: overwrite ACTIVE if time passed
+                let displayStatus = item.status;
+                if (item.status === 'ACTIVE' && isExpired) {
+                    displayStatus = 'EXPIRED';
+                }
+
+                return {
+                    id: item.id,
+                    date: created.toLocaleString(),
+                    machineId: item.machine_id,
+                    type: item.type,
+                    duration: item.duration,
+                    key: item.key,
+                    shopName: item.shop_name,
+                    ownerName: item.owner_name,
+                    phone: item.phone,
+                    address: item.address,
+                    status: displayStatus,
+                    transferredTo: item.transferred_to,
+                    price: item.price
+                };
+            });
             setHistory(mappedHistory);
         }
         setLoading(false);
