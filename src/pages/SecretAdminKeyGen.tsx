@@ -638,7 +638,7 @@ const SecretAdminKeyGen: React.FC = () => {
                                                         <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-slate-600 hover:text-slate-800 hover:bg-slate-100" onClick={() => { setSelectedHistoryMachineId(entry.machineId); setHistoryDialogOpen(true); }} title="View History">
                                                             <History className="w-4 h-4" />
                                                         </Button>
-                                                        {entry.status === 'ACTIVE' && (
+                                                        {(entry.status === 'ACTIVE' || entry.status === 'EXPIRED') && (
                                                             <>
                                                                 <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={() => { setSelectedRenewalLicense(entry); setRenewDialogOpen(true); }} title="Renew/Change Plan">
                                                                     <RefreshCw className="w-4 h-4" />
