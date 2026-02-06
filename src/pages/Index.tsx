@@ -100,12 +100,7 @@ const Index = () => {
               </div>
             </button>
 
-            {/* Guide Button - Mobile */}
-            <div className="md:hidden">
-              <UserGuide />
-            </div>
-
-            {/* Step Indicator */}
+            {/* Step Indicator - Desktop Only */}
             <div className="hidden md:flex items-center gap-2">
               {steps.map((step, index) => {
                 const Icon = step.icon;
@@ -132,13 +127,12 @@ const Index = () => {
                   </React.Fragment>
                 );
               })}
+            </div>
 
-              {/* Credit Status - Desktop */}
-              {/* License Status - Desktop */}
-              <div className="ml-4 border-l pl-4 flex items-center gap-2">
-                <LicenseStatus />
-                <UserProfileDialog />
-              </div>
+            {/* License Status & Profile - Visible on ALL devices */}
+            <div className="flex items-center gap-2">
+              <LicenseStatus />
+              <UserProfileDialog />
             </div>
           </div>
         </div>
