@@ -16,7 +16,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
-export const UserProfileDialog: React.FC = () => {
+interface UserProfileDialogProps {
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+}
+
+export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onOpenChange }) => {
     const { userProfile, updateProfile, machineId, expiryDate, plan } = useLicense();
     const [isEditing, setIsEditing] = useState(false);
 
@@ -38,7 +43,7 @@ export const UserProfileDialog: React.FC = () => {
         : 0;
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full hover:bg-slate-100" title="User Profile">
                     <User className="w-5 h-5 text-slate-700" />

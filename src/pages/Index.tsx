@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Settings2, FileText, ChevronRight, Home, RotateCcw, BookOpen, Info, ChevronDown, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { Settings2, FileText, ChevronRight, Home, RotateCcw, BookOpen, Info, ChevronDown, AlertCircle, Mail, Instagram } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { DesignFactorSelector } from '@/components/DesignFactorSelector';
@@ -54,10 +55,20 @@ const initialFactors: DesignFactors = {
 };
 
 const Index = () => {
-  const { isLicensed } = useLicense();
+  const { isLicensed, isProfileComplete } = useLicense();
   const [factors, setFactors] = useState<DesignFactors>(initialFactors);
   const [activeTab, setActiveTab] = useState('home');
   const [hindiPrompt, setHindiPrompt] = useState(false);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+
+  const handleTabChange = (value: string) => {
+    if ((value === 'design' || value === 'generate') && isLicensed && !isProfileComplete) {
+      toast.error("Please complete your Shop Information to proceed.");
+      setShowProfileDialog(true);
+      return;
+    }
+    setActiveTab(value);
+  };
 
   const handleReset = () => {
     setFactors(initialFactors);
@@ -90,7 +101,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => setActiveTab('home')}
+              onClick={() => handleTabChange('home')}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
               <img src={logoImage} alt="Kurti Prompt Studio" className="w-14 h-14 rounded-xl object-contain bg-primary/5 p-1" />
@@ -110,7 +121,7 @@ const Index = () => {
                 return (
                   <React.Fragment key={step.id}>
                     <button
-                      onClick={() => setActiveTab(step.id)}
+                      onClick={() => handleTabChange(step.id)}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all ${isActive
                         ? 'bg-primary text-primary-foreground'
                         : isPast
@@ -132,7 +143,7 @@ const Index = () => {
             {/* License Status & Profile - Visible on ALL devices */}
             <div className="flex items-center gap-2">
               <LicenseStatus />
-              <UserProfileDialog />
+              <UserProfileDialog open={showProfileDialog} onOpenChange={setShowProfileDialog} />
             </div>
           </div>
         </div>
@@ -140,7 +151,7 @@ const Index = () => {
 
       {/* Main Content */}
       <main>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           {/* Mobile Tab List */}
           <div className="container mx-auto px-4 pt-4">
             <TabsList className="md:hidden w-full grid grid-cols-3">
@@ -158,7 +169,7 @@ const Index = () => {
 
           {/* Home Tab */}
           <TabsContent value="home" className="mt-0">
-            <HomePage onStart={() => setActiveTab('design')} />
+            <HomePage onStart={() => handleTabChange('design')} />
           </TabsContent>
 
           {/* Design Tab */}
@@ -208,7 +219,7 @@ const Index = () => {
                       </div>
                       <Button
                         size="lg"
-                        onClick={() => setActiveTab('generate')}
+                        onClick={() => handleTabChange('generate')}
                         className="gap-2"
                       >
                         Continue to Generate
@@ -292,9 +303,29 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t mt-12 py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>Kurti Prompt Studio — Design your perfect kurti with AI-ready prompts</p>
+      <footer className="border-t mt-12 py-8 bg-muted/30">
+        <div className="container mx-auto px-4 text-center space-y-4">
+          <p className="text-sm text-muted-foreground">Kurti Prompt Studio — Design your perfect kurti with AI-ready prompts</p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-muted-foreground">
+            <a
+              href="mailto:startupshyam27@gmail.com"
+              className="flex items-center gap-2 hover:text-primary transition-colors duration-200"
+            >
+              <Mail className="w-4 h-4" />
+              <span>startupshyam27@gmail.com</span>
+            </a>
+
+            <a
+              href="https://instagram.com/shyam__patel_27"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:text-pink-600 transition-colors duration-200"
+            >
+              <Instagram className="w-4 h-4" />
+              <span>@shyam__patel_27</span>
+            </a>
+          </div>
         </div>
       </footer>
     </div>

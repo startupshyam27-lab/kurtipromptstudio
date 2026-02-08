@@ -74,8 +74,8 @@ export const LicenseStatus: React.FC = () => {
                         <div>
                             <p className="text-sm font-medium">Need to Renew?</p>
                             <p className="text-xs text-muted-foreground mb-2">Contact Shyam to extend your plan.</p>
-                            <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="text-primary text-sm font-bold hover:underline">
-                                +91 98765 43210
+                            <a href="https://wa.me/919265180118" target="_blank" rel="noreferrer" className="text-primary text-sm font-bold hover:underline">
+                                +91 92651 80118
                             </a>
                         </div>
                     </div>

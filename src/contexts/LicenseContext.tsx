@@ -17,6 +17,7 @@ interface LicenseContextType {
     userProfile: UserProfile;
     activateLicense: (key: string) => Promise<{ success: boolean; message: string }>;
     checkLicense: (currentId?: string) => void;
+    isProfileComplete: boolean;
     updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
 }
 
@@ -34,6 +35,13 @@ export const LicenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
         phone: '',
         address: ''
     });
+
+    const isProfileComplete = Boolean(
+        userProfile.shopName &&
+        userProfile.ownerName &&
+        userProfile.phone &&
+        userProfile.address
+    );
 
     useEffect(() => {
         // Initialize Machine ID
@@ -185,7 +193,8 @@ export const LicenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
             userProfile,
             activateLicense,
             checkLicense,
-            updateProfile
+            updateProfile,
+            isProfileComplete
         }}>
             {!loading && children}
         </LicenseContext.Provider>

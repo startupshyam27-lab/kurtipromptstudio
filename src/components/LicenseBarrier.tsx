@@ -88,9 +88,11 @@ export const LicenseBarrier: React.FC<LicenseBarrierProps> = ({ className = '', 
                     <Button className="w-full bg-red-600 hover:bg-red-700" onClick={handleActivate}>
                         Activate License
                     </Button>
-                    <p className="text-xs text-center text-gray-500">
-                        Contact Support: +91 98765 43210
-                    </p>
+                    <div className="text-center text-gray-500 text-xs">
+                        <p>Contact Support:</p>
+                        <p className="font-bold text-gray-700">+91 92651 80118</p>
+                        <p className="text-gray-500">startupshyam27@gmail.com</p>
+                    </div>
                 </CardFooter>
             </Card>
         </div>

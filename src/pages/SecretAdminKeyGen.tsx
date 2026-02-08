@@ -79,6 +79,9 @@ const SecretAdminKeyGen: React.FC = () => {
     const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
     const [selectedHistoryMachineId, setSelectedHistoryMachineId] = useState<string>('');
 
+    // Tab State
+    const [currentTab, setCurrentTab] = useState("dashboard");
+
     useEffect(() => {
         // Load custom password
         const savedPassword = localStorage.getItem('kps_admin_password');
@@ -318,7 +321,8 @@ const SecretAdminKeyGen: React.FC = () => {
             phone: selectedRenewalLicense.phone,
             address: selectedRenewalLicense.address,
             status: 'ACTIVE',
-            price: price
+            price: price,
+            created_at: new Date().toISOString()
         });
 
         if (error) {
@@ -327,6 +331,10 @@ const SecretAdminKeyGen: React.FC = () => {
             toast.success("Plan Renewed/Changed Successfully!");
             setRenewDialogOpen(false);
             setGeneratedKey(key); // Show the new key to admin
+
+            // Switch to Generate Tab to show the key clearly
+            setCurrentTab("generate");
+
             fetchHistory();
         }
     };
@@ -415,7 +423,7 @@ const SecretAdminKeyGen: React.FC = () => {
                     </Button>
                 </div>
 
-                <Tabs defaultValue="dashboard" className="w-full">
+                <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-4 bg-white p-1 h-14 border border-gray-200">
                         <TabsTrigger value="dashboard" className="gap-2 h-full data-[state=active]:bg-gray-100 data-[state=active]:text-slate-900">
                             <BarChart3 className="w-4 h-4" /> Dashboard
@@ -547,7 +555,7 @@ const SecretAdminKeyGen: React.FC = () => {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label>Phone</Label>
-                                            <Input placeholder="9876543210" className="bg-white border-gray-300" value={phone} onChange={e => setPhone(e.target.value)} />
+                                            <Input placeholder="9265180118" className="bg-white border-gray-300" value={phone} onChange={e => setPhone(e.target.value)} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label>City</Label>
@@ -815,6 +823,7 @@ const SecretAdminKeyGen: React.FC = () => {
                                     <TableHead>Plan</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Key</TableHead>
+                                    <TableHead className="w-[50px]">Action</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -839,6 +848,14 @@ const SecretAdminKeyGen: React.FC = () => {
                                         </TableCell>
                                         <TableCell className="font-mono text-xs max-w-[200px] truncate" title={h.key}>
                                             {h.key}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button size="icon" variant="ghost" className="h-6 w-6 text-slate-500 hover:text-blue-600" onClick={() => {
+                                                navigator.clipboard.writeText(h.key);
+                                                toast.success("Key Copied!");
+                                            }}>
+                                                <Copy className="w-3 h-3" />
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))}
